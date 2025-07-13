@@ -26,7 +26,8 @@ class ModernChatView extends UIComponent {
             isInitialized: false,
             streamingTimer: null,
             currentStreamContent: '',
-            usageWarningDisplayed: false
+            usageWarningDisplayed: false,
+            scrollAnimationFrame: null
         };
 
         // Subscribe to global store
@@ -287,7 +288,7 @@ class ModernChatView extends UIComponent {
         streamingElement.innerHTML = this.formatMessage(content);
         
         // Scroll to bottom
-        this.scrollToBottom();
+        this.scrollToBottomStreaming();
     }
 
     renderActiveConversation(conversationId) {
@@ -316,7 +317,7 @@ class ModernChatView extends UIComponent {
         });
 
         // Scroll to bottom
-        this.scrollToBottom();
+        this.scrollToBottom(true, true); // Force scroll with smooth animation when loading conversation
     }
 
     createMessageElement(message) {
@@ -474,11 +475,52 @@ class ModernChatView extends UIComponent {
         }
     }
 
-    scrollToBottom() {
+    /**
+     * Scroll chat log to the bottom with intelligent autoscroll
+     * @param {boolean} force - Force scroll even if user has scrolled up
+     * @param {boolean} smooth - Use smooth scrolling animation
+     */
+    scrollToBottom(force = false, smooth = false) {
         const chatLog = this.find('#chat-log');
-        if (chatLog) {
-            chatLog.scrollTop = chatLog.scrollHeight;
+        if (!chatLog) return;
+
+        // Check if user is near the bottom (within 100px tolerance)
+        const isNearBottom = chatLog.scrollTop + chatLog.clientHeight >= chatLog.scrollHeight - 100;
+        
+        // Only auto-scroll if user is near bottom or if forced
+        if (force || isNearBottom) {
+            if (smooth) {
+                chatLog.scrollTo({
+                    top: chatLog.scrollHeight,
+                    behavior: 'smooth'
+                });
+            } else {
+                chatLog.scrollTop = chatLog.scrollHeight;
+            }
         }
+    }
+
+    /**
+     * Enhanced scroll to bottom for streaming content
+     * This version is optimized for frequent updates during streaming
+     */
+    scrollToBottomStreaming() {
+        const chatLog = this.find('#chat-log');
+        if (!chatLog) return;
+
+        // Use requestAnimationFrame for smooth performance during streaming
+        if (this.state.scrollAnimationFrame) {
+            cancelAnimationFrame(this.state.scrollAnimationFrame);
+        }
+        
+        this.state.scrollAnimationFrame = requestAnimationFrame(() => {
+            // Check if user is near the bottom (within 150px tolerance for streaming)
+            const isNearBottom = chatLog.scrollTop + chatLog.clientHeight >= chatLog.scrollHeight - 150;
+            
+            if (isNearBottom) {
+                chatLog.scrollTop = chatLog.scrollHeight;
+            }
+        });
     }
 
     showError(message) {
