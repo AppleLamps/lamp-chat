@@ -203,37 +203,10 @@ class OpenRouterProvider {
                 throw new Error(`OpenRouter API error ${response.status}: ${errorText}`);
             }
 
-            // Performance optimization: Streaming state management
-            let fullContent = '';
-            let pendingChunks = '';
-            let lastUpdateTime = 0;
-            let updateTimer = null;
-            const DEBOUNCE_DELAY = 30; // 30ms debounce
-            const MIN_CHUNK_SIZE = 5; // Coalesce small chunks
-
-            // Debounced update function
-            const debouncedUpdate = () => {
-                if (updateTimer) {
-                    clearTimeout(updateTimer);
-                }
-                
-                updateTimer = setTimeout(() => {
-                    if (pendingChunks && onStreamUpdate) {
-                        // Send only the new chunk, not the full content
-                        onStreamUpdate({ 
-                            type: 'chunk', 
-                            content: pendingChunks,
-                            fullContent: fullContent
-                        });
-                        pendingChunks = '';
-                    }
-                    updateTimer = null;
-                }, DEBOUNCE_DELAY);
-            };
-
             // Handle streaming response
             const reader = response.body.getReader();
             const decoder = new TextDecoder('utf-8');
+            let fullContent = '';
             let buffer = '';
 
             while (true) {
@@ -250,25 +223,6 @@ class OpenRouterProvider {
                     if (line.startsWith('data: ')) {
                         const data = line.substring(6);
                         if (data === '[DONE]') {
-                            // Send final update immediately
-                            if (updateTimer) {
-                                clearTimeout(updateTimer);
-                                updateTimer = null;
-                            }
-                            if (pendingChunks && onStreamUpdate) {
-                                onStreamUpdate({ 
-                                    type: 'chunk', 
-                                    content: pendingChunks,
-                                    fullContent: fullContent
-                                });
-                            }
-                            // Send completion signal
-                            if (onStreamUpdate) {
-                                onStreamUpdate({ 
-                                    type: 'complete',
-                                    fullContent: fullContent
-                                });
-                            }
                             reader.cancel();
                             return { message: fullContent, provider: this.name, model: modelId, usage: null };
                         }
@@ -277,32 +231,9 @@ class OpenRouterProvider {
                             const content = json.choices[0]?.delta?.content || '';
                             if (content) {
                                 fullContent += content;
-                                pendingChunks += content;
-                                
-                                // Send immediate update for larger chunks or if enough time has passed
-                                const now = Date.now();
-                                const shouldUpdateImmediately = 
-                                    pendingChunks.length >= MIN_CHUNK_SIZE || 
-                                    (now - lastUpdateTime) >= DEBOUNCE_DELAY * 2;
-                                
-                                if (shouldUpdateImmediately) {
-                                    if (updateTimer) {
-                                        clearTimeout(updateTimer);
-                                        updateTimer = null;
-                                    }
-                                    
-                                    if (onStreamUpdate) {
-                                        onStreamUpdate({ 
-                                            type: 'chunk', 
-                                            content: pendingChunks,
-                                            fullContent: fullContent
-                                        });
-                                    }
-                                    pendingChunks = '';
-                                    lastUpdateTime = now;
-                                } else {
-                                    // Use debounced update for smaller chunks
-                                    debouncedUpdate();
+                                if (onStreamUpdate) {
+                                    // Send the full content directly, just like OpenAI provider
+                                    onStreamUpdate(fullContent);
                                 }
                             }
                         } catch (e) {
@@ -312,24 +243,7 @@ class OpenRouterProvider {
                 }
             }
 
-            // Cleanup and fallback
-            if (updateTimer) {
-                clearTimeout(updateTimer);
-            }
-            if (pendingChunks && onStreamUpdate) {
-                onStreamUpdate({ 
-                    type: 'chunk', 
-                    content: pendingChunks,
-                    fullContent: fullContent
-                });
-            }
-            if (onStreamUpdate) {
-                onStreamUpdate({ 
-                    type: 'complete',
-                    fullContent: fullContent
-                });
-            }
-
+            // Fallback if [DONE] is not received
             return { message: fullContent, provider: this.name, model: modelId, usage: null };
 
         } catch (error) {
