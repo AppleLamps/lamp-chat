@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-modern-gray">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+    <title>Settings - Lamp.chat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/chat.css">
+    <link rel="stylesheet" href="assets/css/settings.css">
+    <!-- Prism theme placed BEFORE formatted-content to allow overrides -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <link rel="stylesheet" href="assets/css/formatted-content.css">
+    <link rel="stylesheet" href="assets/css/color-themes.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
+    <script>
+        // Initialize theme based on localStorage or system preference
+        const currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.classList.toggle('dark', currentTheme === 'dark');
+        document.documentElement.classList.toggle('light', currentTheme === 'light');
+
+        // Apply modern-gray theme by default
+        const savedColorTheme = localStorage.getItem('t3chat_color_theme') || 'modern-gray';
+        if (savedColorTheme !== 'default') {
+            document.documentElement.classList.add(`theme-${savedColorTheme}`);
+        }
+
+        // When DOM is loaded, set the icon visibility
+        document.addEventListener('DOMContentLoaded', () => {
+            const sunIcon = document.querySelector('.icon-sun');
+            const moonIcon = document.querySelector('.icon-moon');
+
+            if (sunIcon && moonIcon) {
+                sunIcon.style.display = currentTheme === 'dark' ? 'none' : 'block';
+                moonIcon.style.display = currentTheme === 'dark' ? 'block' : 'none';
+            }
+        });
+    </script>
+    <script type="module">
+        // Initialize system prompt service on settings page
+        import systemPromptService from './assets/js/services/systemPromptService.js';
+        // The service will auto-initialize when imported
+        console.log('System prompt service initialized for settings page');
+    </script>
+    <script type="module" src="assets/js/views/settingsView.js"></script>
+</head>
+
+<body class="font-sans">
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div class="settings-wrapper">
+        <header class="settings-header">
+            <div class="header-left">
+                <a href="index.html" class="back-button">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                    Back to Chat
+                </a>
+            </div>
+            <div class="header-right">
+                <button type="button" class="theme-toggle" aria-label="Toggle Theme">
+                    <svg class="icon icon-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                    <svg class="icon icon-sun" viewBox="0 0 24 24"><path d="M12 3v2m0 14v2M5.64 5.64l1.42 1.42m9.9 9.9 1.42 1.42M3 12h2m14 0h2M5.64 18.36l1.42-1.42m9.9-9.9 1.42-1.42M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z"/></svg>
+                </button>
+                <button type="button" class="sign-out">Sign out</button>
+            </div>
+        </header>
+
+        <main class="settings-main">
+            <div class="settings-sidebar">
+                <div class="user-profile-large">
+                    <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=" alt="User Avatar" class="avatar-large">
+                    <h2 class="username">Apple Lamps</h2>
+                    <div class="user-email">applelampsx2024@gmail.com</div>
+                    <div class="plan-badge">Pro Plan</div>
+                </div>
+                <div class="usage-section">
+                    <div class="usage-header">
+                        <h3>Message Usage</h3>
+                        <span class="reset-time">Resets Wednesday at 4:39 PM</span>
+                    </div>
+
+                    <div class="usage-bars">
+                        <div class="usage-type">
+                            <div class="usage-label">
+                                <span>Standard</span>
+                                <span>0/1500</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress" role="progressbar" aria-valuenow="5" aria-valuemin="0" aria-valuemax="100" aria-label="Standard message usage"></div>
+                            </div>
+                            <div class="remaining">1500 messages remaining</div>
+                        </div>
+
+                        <div class="usage-type">
+                            <div class="usage-label">
+                                <span>Premium</span>
+                                <span>0/100</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress" role="progressbar" aria-valuenow="3" aria-valuemin="0" aria-valuemax="100" aria-label="Premium message usage"></div>
+                            </div>
+                            <div class="remaining">100 messages remaining</div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="manage-subscription-btn">Manage Subscription</button>
+                </div>
+            </div>
+
+            <div class="settings-content">
+                <nav class="settings-tabs">
+                    <div class="tab-group" id="settings-tab-group">
+                        <!-- Tab buttons will be dynamically generated here -->
+                    </div>
+                </nav>
+
+                <div class="settings-panel active" id="account-panel">
+                    <h1>Pro Plan Benefits</h1>
+
+                    <div class="benefits-grid">
+                        <div class="benefit-card">
+                            <div class="benefit-icon">
+                                <svg class="icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                            </div>
+                            <h3>All AI Models</h3>
+                            <p>Get access to our full suite of models including Claude, α3-mini-high, and more!</p>
+                        </div>
+
+                        <div class="benefit-card">
+                            <div class="benefit-icon">
+                                <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            </div>
+                            <h3>Generous Message Limits</h3>
+                            <p>Receive 1500 standard message credits per month, plus 100 premium credits per month (premium credits are for image gen, Claude and Grok)*</p>
+                        </div>
+
+                        <div class="benefit-card">
+                            <div class="benefit-icon">
+                                <svg class="icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                            </div>
+                            <h3>Priority Support</h3>
+                            <p>Get faster responses and dedicated assistance</p>
+                        </div>
+                    </div>
+
+                    <div class="api-key-setting">
+                        <h3>OpenAI API Key</h3>
+                        <p>Enter your personal OpenAI API key to use the service directly.</p>
+                        <div class="form-group">
+                            <label for="openai-api-key">API Key:</label>
+                            <input type="password" id="openai-api-key" class="form-input" placeholder="sk-...">
+                        </div>
+                        <button type="button" id="save-api-key-btn" class="save-preferences-btn">Save API Key</button>
+                    </div>
+
+                    <div class="api-key-setting">
+                        <h3>xAI API Key</h3>
+                        <p>Enter your personal xAI API key to use Grok models.</p>
+                        <div class="form-group">
+                            <label for="xai-api-key">API Key:</label>
+                            <input type="password" id="xai-api-key" class="form-input" placeholder="xai-...">
+                        </div>
+                        <button type="button" id="save-xai-api-key-btn" class="save-preferences-btn">Save API Key</button>
+                    </div>
+
+                    <div class="api-key-setting">
+                        <h3>OpenRouter API Key</h3>
+                        <p>Enter your personal OpenRouter API key to use models like Kimi K2.</p>
+                        <div class="form-group">
+                            <label for="openrouter-api-key">API Key:</label>
+                            <input type="password" id="openrouter-api-key" class="form-input" placeholder="sk-or-...">
+                        </div>
+                        <button type="button" id="save-openrouter-api-key-btn" class="save-preferences-btn">Save API Key</button>
+                    </div>
+
+                    <div class="api-key-setting">
+                        <h3>Web Search Configuration</h3>
+                        <p>Configure web search settings for OpenRouter models that support web search functionality.</p>
+                        
+                        <div class="form-group">
+                            <label for="web-search-enabled">Enable Web Search:</label>
+                            <label class="switch" for="web-search-enabled">
+                                <input type="checkbox" id="web-search-enabled" name="webSearchEnabled" title="Enable web search for compatible models">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="web-search-max-results">Max Results:</label>
+                            <input type="number" id="web-search-max-results" class="form-input" placeholder="5" min="1" max="10" value="5">
+                            <div class="input-hint">Number of web search results to include (1-10)</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="web-search-prompt">Search Prompt:</label>
+                            <textarea id="web-search-prompt" class="form-textarea" placeholder="Custom search prompt (optional)" rows="3"></textarea>
+                            <div class="input-hint">Optional custom prompt for web searches</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="web-search-options">Search Context Size:</label>
+                            <select id="web-search-options" class="form-input">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                            <div class="input-hint">Amount of context to include from search results</div>
+                        </div>
+
+                        <button type="button" id="save-web-search-settings-btn" class="save-preferences-btn">Save Web Search Settings</button>
+                    </div>
+
+                    <div class="danger-zone">
+                        <h3>Danger Zone</h3>
+                        <p>Permanently delete your account and all associated data.</p>
+                        <button type="button" class="delete-account-btn">Delete Account</button>
+                    </div>
+                </div>
+
+                <div class="settings-panel" id="customization-panel">
+                    <h1>Customize LampChat</h1>
+
+                    <form class="customize-form">
+                        <div class="customization-section">
+                            <h2>Personalization</h2>
+
+                            <div class="form-group">
+                                <label for="username-input">What should LampChat call you?</label>
+                                <input type="text" id="username-input" name="username" placeholder="Enter your name" class="form-input">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="occupation-input">What do you do?</label>
+                                <input type="text" id="occupation-input" name="occupation" placeholder="Engineer, student, etc." class="form-input">
+                                <div class="input-hint">This helps LampChat provide more relevant responses</div>
+                            </div>
+                        </div>
+
+                        <div class="customization-section">
+                            <h2>AI Behavior</h2>
+
+                            <div class="form-group">
+                                <label for="traits-textarea">What traits should LampChat have?</label>
+                                <div class="textarea-container">
+                                    <textarea id="traits-textarea" name="traits" class="form-textarea" rows="6">You are a helpful, knowledgeable, and professional assistant. Provide clear, well-structured responses that are informative and easy to understand. Format your responses cleanly without unnecessary separators or decorative elements.</textarea>
+                                    <div class="textarea-controls">
+                                        <button type="button" class="preset-btn" data-preset="friendly">Friendly</button>
+                                        <button type="button" class="preset-btn" data-preset="professional">Professional</button>
+                                        <button type="button" class="preset-btn" data-preset="creative">Creative</button>
+                                        <button type="button" class="preset-btn" data-preset="direct">Direct</button>
+                                        <button type="button" class="preset-btn active" data-preset="custom">Custom</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="preferences-textarea">Anything else LampChat should know about you?</label>
+                                <textarea id="preferences-textarea" name="preferences" class="form-textarea" placeholder="Interests, values, or preferences to keep in mind" rows="4"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="checkbox-wrapper">
+                                    <label class="switch" for="memory-toggle">
+                                        <input type="checkbox" id="memory-toggle" name="enableMemory" checked title="Enable conversation memory">
+                                        <span class="slider round"></span>
+                                    </label>
+                                    <div class="option-label">
+                                        <h3>Remember conversation context</h3>
+                                        <p class="option-description">Allow T3 Chat to use previous conversations for more relevant responses</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="customization-section">
+                            <h2>Visual Options</h2>
+
+                            <div class="option-group">
+                                <div class="option-header">
+                                    <div class="option-label">
+                                        <h3>Simplified UI</h3>
+                                        <p class="option-description">Enable this option for a more minimalist interface with reduced visual effects.</p>
+                                    </div>
+                                    <label class="switch" for="boring-theme">
+                                        <input type="checkbox" name="boringTheme" id="boring-theme" title="Enable simplified UI">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="option-group">
+                                <div class="option-header">
+                                    <div class="option-label">
+                                        <h3>Hide Personal Information</h3>
+                                        <p class="option-description">Hides your name and email from the UI.</p>
+                                    </div>
+                                    <label class="switch" for="hide-personal-info">
+                                        <input type="checkbox" name="hidePersonalInfo" id="hide-personal-info" title="Hide personal information">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="option-group">
+                                <div class="option-header">
+                                    <div class="option-label">
+                                        <h3>Compact Messages</h3>
+                                        <p class="option-description">Show more content by reducing padding in messages.</p>
+                                    </div>
+                                    <label class="switch" for="compact-messages">
+                                        <input type="checkbox" name="compactMessages" id="compact-messages" title="Enable compact messages">
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="fonts-section">
+                                <div class="font-group">
+                                    <div class="font-header">
+                                        <h3>Main Text Font</h3>
+                                        <p class="font-description">Used in general text throughout the app.</p>
+                                    </div>
+                                    <select class="font-select" id="main-font" name="mainFont" aria-label="Select main text font">
+                                        <option value="proxima-vera">Proxima Vera (default)</option>
+                                        <option value="inter">Inter</option>
+                                        <option value="system-ui">System UI</option>
+                                        <option value="roboto">Roboto</option>
+                                        <option value="open-sans">Open Sans</option>
+                                    </select>
+                                </div>
+
+                                <div class="font-group">
+                                    <div class="font-header">
+                                        <h3>Code Font</h3>
+                                        <p class="font-description">Used in code blocks and inline code in chat messages.</p>
+                                    </div>
+                                    <select class="font-select" id="code-font" name="codeFont" aria-label="Select code font">
+                                        <option value="berkeley-mono">Berkeley Mono (default)</option>
+                                        <option value="jetbrains-mono">JetBrains Mono</option>
+                                        <option value="fira-code">Fira Code</option>
+                                        <option value="source-code-pro">Source Code Pro</option>
+                                        <option value="consolas">Consolas</option>
+                                    </select>
+                                </div>
+
+                                <div class="font-preview">
+                                    <h3>Fonts Preview</h3>
+                                    <div class="preview-card">
+                                        <div class="preview-text">
+                                            <p>Can you write me a simple hello world program?</p>
+                                            <div class="code-preview">
+                                                <pre><code>typescript
+function greet(name: string) {
+    console.log(`Hello, ${name}!`);
+    return true;
+}</code></pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="color-theme-section">
+                                <h3>Color Theme</h3>
+                                <div class="color-themes">
+                                    <label class="color-theme-option" for="theme-modern-gray">
+                                        <input type="radio" name="colorTheme" value="modern-gray" id="theme-modern-gray" checked>
+                                        <span class="color-preview modern-gray-theme"></span>
+                                        <span>Modern Gray</span>
+                                    </label>
+                                    <label class="color-theme-option" for="theme-default">
+                                        <input type="radio" name="colorTheme" value="default" id="theme-default">
+                                        <span class="color-preview default-theme"></span>
+                                        <span>Default</span>
+                                    </label>
+                                    <label class="color-theme-option" for="theme-midnight">
+                                        <input type="radio" name="colorTheme" value="midnight" id="theme-midnight">
+                                        <span class="color-preview midnight-theme"></span>
+                                        <span>Midnight</span>
+                                    </label>
+                                    <label class="color-theme-option" for="theme-ocean">
+                                        <input type="radio" name="colorTheme" value="ocean" id="theme-ocean">
+                                        <span class="color-preview ocean-theme"></span>
+                                        <span>Ocean</span>
+                                    </label>
+                                    <label class="color-theme-option" for="theme-forest">
+                                        <input type="radio" name="colorTheme" value="forest" id="theme-forest">
+                                        <span class="color-preview forest-theme"></span>
+                                        <span>Forest</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="save-preferences-btn">Save Preferences</button>
+                        <div class="save-confirmation" id="save-confirmation">Preferences saved successfully!</div>
+                    </form>
+                </div>
+
+                <div class="settings-panel" id="models-panel">
+                    <h1>AI Models</h1>
+
+                    <div class="customization-section">
+                        <h2>Available Models</h2>
+                        <p class="section-description">Select your preferred AI model for conversations. More powerful models provide higher quality responses but may use more credits.</p>
+
+                        <div id="model-list-container">
+                            <!-- Model cards will be dynamically inserted here -->
+                        </div>
+                        <div class="reasoning-effort-dropdown hidden">
+                            <label for="reasoning-effort">Reasoning Effort:</label>
+                            <select id="reasoning-effort" class="form-select">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="customization-section">
+                        <h2>Model Settings</h2>
+
+                        <div class="form-group">
+                            <label for="temperature-slider">Temperature</label>
+                            <p class="setting-description">Controls the randomness of responses. Lower values are more focused and deterministic, higher values are more creative.</p>
+                            <div class="slider-container">
+                                <input type="range" id="temperature-slider" name="temperature" min="0" max="2" step="0.1" value="0.7" class="range-slider">
+                                <div class="slider-value">0.7</div>
+                            </div>
+                            <div class="slider-labels">
+                                <span>Focused</span>
+                                <span>Balanced</span>
+                                <span>Creative</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="max-tokens-input">Maximum Length</label>
+                            <p class="setting-description">The maximum number of tokens (words/characters) the model will generate in a response.</p>
+                            <input type="number" id="max-tokens-input" name="maxTokens" value="2048" min="256" max="8192" step="128" class="form-input">
+                        </div>
+                    </div>
+
+                    <button type="button" class="save-preferences-btn" id="save-model-settings">Save Model Settings</button>
+                </div>
+
+                <div class="settings-panel" id="history-sync-panel">
+                    <h1>History & Sync</h1>
+                    <div class="customization-section">
+                        <h2>Coming Soon</h2>
+                        <p class="section-description">Chat history synchronization and backup features will be available in a future update.</p>
+                    </div>
+                </div>
+
+                <div class="settings-panel" id="system-prompts-panel">
+                    <h1>System Prompts</h1>
+
+                    <div class="customization-section">
+                        <h2>Custom System Prompts</h2>
+                        <p class="section-description">Create and manage custom system prompts to control how the AI behaves in conversations. You can switch between different prompts using the dropdown in the chat interface.</p>
+
+                        <div class="system-prompt-actions">
+                            <button type="button" class="add-prompt-btn" id="add-prompt-btn">
+                                <span>✚</span>
+                                Add New Prompt
+                            </button>
+                        </div>
+
+                        <div id="system-prompts-list">
+                            <!-- System prompt cards will be dynamically inserted here -->
+                        </div>
+                    </div>
+
+                    <div class="customization-section">
+                        <h2>Built-in Prompts</h2>
+                        <p class="section-description">These are the default system prompts that come with the application. You cannot edit or delete these prompts.</p>
+
+                        <div id="builtin-prompts-list">
+                            <!-- Built-in prompt cards will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-panel" id="attachments-panel">
+                    <h1>Attachments</h1>
+                    <div class="customization-section">
+                        <h2>Coming Soon</h2>
+                        <p class="section-description">File attachment and document processing features will be available in a future update.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- System Prompt Modal -->
+    <div class="modal" id="system-prompt-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add New System Prompt</h2>
+                <button type="button" class="modal-close" id="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="prompt-name">Prompt Name</label>
+                    <input type="text" id="prompt-name" class="form-input" placeholder="Enter a name for your prompt" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="prompt-content">System Prompt</label>
+                    <textarea id="prompt-content" class="form-textarea" placeholder="Enter your system prompt here..." rows="8"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="cancel-btn" id="cancel-prompt-btn">Cancel</button>
+                <button type="button" class="save-btn" id="save-prompt-btn">Save Prompt</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="delete-prompt-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Delete System Prompt</h2>
+                <button type="button" class="modal-close" id="delete-modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this system prompt? This action cannot be undone.</p>
+                <p id="delete-prompt-name" class="delete-prompt-name"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="cancel-btn" id="cancel-delete-btn">Cancel</button>
+                <button type="button" class="delete-btn" id="confirm-delete-btn">Delete</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
